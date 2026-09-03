@@ -32,12 +32,14 @@ export const createTrailerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
   description: z.string().trim().max(2000).default(""),
   day_rate: z.number().positive("Day rate must be greater than 0"),
+  week_rate: z.number().positive("Week rate must be greater than 0").nullable().optional(),
 });
 
 export const updateTrailerSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   description: z.string().trim().max(2000).optional(),
   day_rate: z.number().positive().optional(),
+  week_rate: z.number().positive().nullable().optional(),
   active: z.boolean().optional(),
   sort_order: z.number().int().optional(),
   photo_url: z.string().url().nullable().optional(),

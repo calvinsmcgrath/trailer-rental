@@ -48,6 +48,11 @@ export function TrailerStep({
                   ${trailer.day_rate}/day
                 </span>
               </div>
+              {trailer.week_rate != null && (
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  ${trailer.week_rate}/week
+                </p>
+              )}
               {trailer.description && (
                 <p className="text-sm text-[var(--color-text-muted)]">{trailer.description}</p>
               )}

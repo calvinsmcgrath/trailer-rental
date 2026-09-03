@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import type { Trailer } from "@/lib/types";
+import { useUnsavedChanges } from "../../_components/UnsavedChangesContext";
 
 export function TrailerCard({
   trailer,
@@ -17,7 +18,9 @@ export function TrailerCard({
   trailer: Trailer;
   isFirst: boolean;
   isLast: boolean;
-  onSave: (patch: Partial<Pick<Trailer, "name" | "description" | "day_rate" | "active">>) => Promise<void>;
+  onSave: (
+    patch: Partial<Pick<Trailer, "name" | "description" | "day_rate" | "week_rate" | "active">>
+  ) => Promise<void>;
   onDelete: () => Promise<string | null>;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -26,17 +29,42 @@ export function TrailerCard({
   const [name, setName] = useState(trailer.name);
   const [description, setDescription] = useState(trailer.description);
   const [dayRate, setDayRate] = useState(String(trailer.day_rate));
+  const [weekRate, setWeekRate] = useState(trailer.week_rate != null ? String(trailer.week_rate) : "");
+  const [dirty, setDirty] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const unsavedChanges = useUnsavedChanges();
 
-  async function saveField() {
+  useEffect(() => {
+    unsavedChanges?.setDirty(trailer.id, dirty);
+    return () => unsavedChanges?.setDirty(trailer.id, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty, trailer.id]);
+
+  function markDirty<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      setter(v);
+      setDirty(true);
+    };
+  }
+
+  async function handleSave() {
     const rate = parseFloat(dayRate);
-    await onSave({
-      name: name.trim() || trailer.name,
-      description,
-      day_rate: Number.isFinite(rate) && rate > 0 ? rate : trailer.day_rate,
-    });
+    const weekRateNum = parseFloat(weekRate);
+    setSaving(true);
+    try {
+      await onSave({
+        name: name.trim() || trailer.name,
+        description,
+        day_rate: Number.isFinite(rate) && rate > 0 ? rate : trailer.day_rate,
+        week_rate: Number.isFinite(weekRateNum) && weekRateNum > 0 ? weekRateNum : null,
+      });
+      setDirty(false);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete() {
@@ -97,8 +125,7 @@ export function TrailerCard({
             <input
               className="input flex-1 font-medium"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              onBlur={saveField}
+              onChange={(e) => markDirty(setName)(e.target.value)}
             />
             {!trailer.active && (
               <span className="badge bg-[var(--color-surface-raised)] text-[var(--color-text-muted)]">
@@ -109,8 +136,7 @@ export function TrailerCard({
           <textarea
             className="input min-h-[2.5rem] resize-none text-sm"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onBlur={saveField}
+            onChange={(e) => markDirty(setDescription)(e.target.value)}
             placeholder="Description / specs"
           />
           <div className="flex items-center gap-1 text-sm">
@@ -118,12 +144,35 @@ export function TrailerCard({
             <input
               className="input w-24"
               value={dayRate}
-              onChange={(e) => setDayRate(e.target.value)}
-              onBlur={saveField}
+              onChange={(e) => markDirty(setDayRate)(e.target.value)}
               inputMode="decimal"
             />
             <span className="text-[var(--color-text-muted)]">/day</span>
           </div>
+          <div className="flex items-center gap-1 text-sm">
+            <span className="text-[var(--color-text-muted)]">$</span>
+            <input
+              className="input w-24"
+              value={weekRate}
+              onChange={(e) => markDirty(setWeekRate)(e.target.value)}
+              inputMode="decimal"
+              placeholder="none"
+            />
+            <span className="text-[var(--color-text-muted)]">/week (optional)</span>
+          </div>
+          {dirty && (
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="btn btn-primary"
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+              <span className="text-xs text-[var(--color-text-faint)]">Unsaved changes</span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">

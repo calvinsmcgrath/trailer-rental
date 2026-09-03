@@ -3,6 +3,7 @@ export type PublicTrailer = {
   name: string;
   description: string;
   day_rate: number;
+  week_rate: number | null;
   photo_url: string | null;
   sort_order: number;
 };

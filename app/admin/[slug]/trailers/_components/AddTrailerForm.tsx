@@ -7,6 +7,7 @@ export function AddTrailerForm({ onAdded }: { onAdded: () => void }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [dayRate, setDayRate] = useState("");
+  const [weekRate, setWeekRate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,10 +16,16 @@ export function AddTrailerForm({ onAdded }: { onAdded: () => void }) {
     setSubmitting(true);
     setError(null);
     try {
+      const parsedWeekRate = parseFloat(weekRate);
       const res = await fetch("/api/admin/trailers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, description, day_rate: parseFloat(dayRate) }),
+        body: JSON.stringify({
+          name,
+          description,
+          day_rate: parseFloat(dayRate),
+          week_rate: Number.isFinite(parsedWeekRate) && parsedWeekRate > 0 ? parsedWeekRate : null,
+        }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -28,6 +35,7 @@ export function AddTrailerForm({ onAdded }: { onAdded: () => void }) {
       setName("");
       setDescription("");
       setDayRate("");
+      setWeekRate("");
       setOpen(false);
       onAdded();
     } finally {
@@ -65,6 +73,16 @@ export function AddTrailerForm({ onAdded }: { onAdded: () => void }) {
           onChange={(e) => setDayRate(e.target.value)}
           inputMode="decimal"
           required
+        />
+      </div>
+      <div>
+        <label className="label">Week rate ($, optional)</label>
+        <input
+          className="input"
+          value={weekRate}
+          onChange={(e) => setWeekRate(e.target.value)}
+          inputMode="decimal"
+          placeholder="Leave blank for no weekly discount"
         />
       </div>
       {error && <p className="text-sm text-[var(--color-danger)]">{error}</p>}

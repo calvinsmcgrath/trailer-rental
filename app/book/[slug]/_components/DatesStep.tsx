@@ -1,7 +1,7 @@
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/Calendar";
 import { fromDateOnly, toDateOnly, formatDisplayDate, startOfToday } from "@/lib/date";
-import { nightsBetween } from "@/lib/pricing";
+import { nightsBetween, priceFor } from "@/lib/pricing";
 import type { PublicTrailer } from "@/lib/types";
 
 export function DatesStep({
@@ -46,6 +46,7 @@ export function DatesStep({
       <h1 className="text-lg font-semibold">Pick your dates</h1>
       <p className="text-sm text-[var(--color-text-muted)]">
         {trailer.name} · ${trailer.day_rate}/day
+        {trailer.week_rate != null && <> · ${trailer.week_rate}/week</>}
       </p>
 
       {errorMessage && (
@@ -76,12 +77,20 @@ export function DatesStep({
               <span>{formatDisplayDate(toDateOnly(range.to))}</span>
             </div>
           )}
-          {nights >= 1 && (
+          {nights >= 1 && range?.from && range?.to && (
             <div className="mt-2 flex justify-between border-t border-[var(--color-border)] pt-2 font-medium">
               <span>
-                {nights} night{nights === 1 ? "" : "s"} × ${trailer.day_rate}
+                {nights} night{nights === 1 ? "" : "s"}
               </span>
-              <span>${(nights * trailer.day_rate).toFixed(2)}</span>
+              <span>
+                $
+                {priceFor(
+                  trailer.day_rate,
+                  trailer.week_rate,
+                  toDateOnly(range.from),
+                  toDateOnly(range.to)
+                ).toFixed(2)}
+              </span>
             </div>
           )}
         </div>

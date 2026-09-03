@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
   const { data: trailer, error: trailerError } = await db
     .from("trailers")
-    .select("id, day_rate, active")
+    .select("id, day_rate, week_rate, active")
     .eq("id", body.trailerId)
     .maybeSingle();
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This trailer is not available." }, { status: 400 });
   }
 
-  const price = priceFor(trailer.day_rate, body.startDate, body.endDate);
+  const price = priceFor(trailer.day_rate, trailer.week_rate, body.startDate, body.endDate);
 
   const headersList = await headers();
   const signatureIp = getClientIp(headersList);

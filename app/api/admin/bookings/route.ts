@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   const db = supabaseService();
   const { data: trailer } = await db
     .from("trailers")
-    .select("id, day_rate")
+    .select("id, day_rate, week_rate")
     .eq("id", body.trailerId)
     .maybeSingle();
 
@@ -65,7 +65,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Trailer not found." }, { status: 400 });
   }
 
-  const price = body.isBlock ? 0 : priceFor(trailer.day_rate, body.startDate, body.endDate);
+  const price = body.isBlock
+    ? 0
+    : priceFor(trailer.day_rate, trailer.week_rate, body.startDate, body.endDate);
   const signerName = body.customerName || (body.isBlock ? "Blocked" : "Manual booking");
 
   const { data: booking, error: insertError } = await db

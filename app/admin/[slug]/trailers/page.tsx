@@ -1,6 +1,7 @@
 import { assertAdminSlug, requireAdminSession } from "@/lib/admin/guard";
 import { supabaseService } from "@/lib/supabase/service";
 import { AdminNav } from "../_components/AdminNav";
+import { UnsavedChangesProvider } from "../_components/UnsavedChangesContext";
 import { TrailersClient } from "./TrailersClient";
 import type { Trailer } from "@/lib/types";
 
@@ -21,8 +22,10 @@ export default async function AdminTrailersPage({
 
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-8">
-      <AdminNav slug={slug} />
-      <TrailersClient initialTrailers={(trailers ?? []) as Trailer[]} />
+      <UnsavedChangesProvider>
+        <AdminNav slug={slug} />
+        <TrailersClient initialTrailers={(trailers ?? []) as Trailer[]} />
+      </UnsavedChangesProvider>
     </main>
   );
 }
