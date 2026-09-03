@@ -98,7 +98,11 @@ export function BookingWizard({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-4 py-8">
+    <main
+      className={`mx-auto flex min-h-dvh w-full flex-col px-4 py-8 ${
+        step === "trailer" ? "max-w-4xl" : "max-w-2xl"
+      }`}
+    >
       <ProgressHeader businessName={businessName} stepIndex={STEP_INDEX[step]} />
 
       {step === "trailer" && <TrailerStep trailers={trailers} onSelect={handleSelectTrailer} />}

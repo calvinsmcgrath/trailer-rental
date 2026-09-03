@@ -44,10 +44,10 @@ export function AdminNav({ slug }: { slug: string }) {
                 key={tab.href}
                 href={tab.href}
                 onClick={guardNavigation}
-                className={`border-b-2 pb-3 text-base font-semibold transition-colors ${
+                className={`border-b-2 pb-3 text-lg font-semibold transition-colors ${
                   active
-                    ? "border-[var(--color-accent)] text-[var(--color-text)]"
-                    : "border-transparent text-[var(--color-text-faint)] hover:text-[var(--color-text-muted)]"
+                    ? "border-[var(--color-accent)] text-[var(--color-accent)]"
+                    : "border-transparent text-[var(--color-text-faint)] hover:border-[var(--color-accent)] hover:text-[var(--color-text-muted)]"
                 }`}
               >
                 {tab.label}

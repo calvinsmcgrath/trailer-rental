@@ -32,6 +32,7 @@ export function TrailerCard({
   const [weekRate, setWeekRate] = useState(trailer.week_rate != null ? String(trailer.week_rate) : "");
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +55,7 @@ export function TrailerCard({
     const rate = parseFloat(dayRate);
     const weekRateNum = parseFloat(weekRate);
     setSaving(true);
+    setSaveError(null);
     try {
       await onSave({
         name: name.trim() || trailer.name,
@@ -62,8 +64,19 @@ export function TrailerCard({
         week_rate: Number.isFinite(weekRateNum) && weekRateNum > 0 ? weekRateNum : null,
       });
       setDirty(false);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save trailer.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleToggleActive() {
+    setSaveError(null);
+    try {
+      await onSave({ active: !trailer.active });
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to update trailer.");
     }
   }
 
@@ -128,7 +141,7 @@ export function TrailerCard({
               onChange={(e) => markDirty(setName)(e.target.value)}
             />
             {!trailer.active && (
-              <span className="badge bg-[var(--color-surface-raised)] text-[var(--color-text-muted)]">
+              <span className="badge bg-[var(--color-danger)]/15 font-semibold text-[var(--color-danger)]">
                 Inactive
               </span>
             )}
@@ -173,6 +186,7 @@ export function TrailerCard({
               <span className="text-xs text-[var(--color-text-faint)]">Unsaved changes</span>
             </div>
           )}
+          {saveError && <p className="text-sm text-[var(--color-danger)]">{saveError}</p>}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -186,7 +200,7 @@ export function TrailerCard({
       </div>
 
       <div className="mt-3 flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-        <button onClick={() => onSave({ active: !trailer.active })} className="btn btn-secondary">
+        <button onClick={handleToggleActive} className="btn btn-secondary">
           {trailer.active ? "Deactivate" : "Reactivate"}
         </button>
         <button onClick={handleDelete} className="btn btn-danger">

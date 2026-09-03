@@ -20,10 +20,12 @@ export function TrailersClient({ initialTrailers }: { initialTrailers: Trailer[]
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     });
-    if (res.ok) {
-      const json = await res.json();
-      setTrailers((prev) => prev.map((t) => (t.id === id ? json.trailer : t)));
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}));
+      throw new Error(json.error || "Failed to save trailer.");
     }
+    const json = await res.json();
+    setTrailers((prev) => prev.map((t) => (t.id === id ? json.trailer : t)));
   }
 
   async function deleteTrailer(id: string): Promise<string | null> {
@@ -45,10 +47,14 @@ export function TrailersClient({ initialTrailers }: { initialTrailers: Trailer[]
       [next[indexA], next[indexB]] = [next[indexB], next[indexA]];
       return next;
     });
-    await Promise.all([
-      patchTrailer(a.id, { sort_order: b.sort_order }),
-      patchTrailer(b.id, { sort_order: a.sort_order }),
-    ]);
+    try {
+      await Promise.all([
+        patchTrailer(a.id, { sort_order: b.sort_order }),
+        patchTrailer(b.id, { sort_order: a.sort_order }),
+      ]);
+    } catch {
+      await refresh();
+    }
   }
 
   return (

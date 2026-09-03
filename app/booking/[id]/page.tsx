@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { supabaseService } from "@/lib/supabase/service";
 import { env } from "@/lib/env";
 import { formatDisplayDate } from "@/lib/date";
-import { nightsBetween } from "@/lib/pricing";
+import { daysBetween } from "@/lib/pricing";
 
 export default async function BookingConfirmationPage({
   params,
@@ -22,7 +22,7 @@ export default async function BookingConfirmationPage({
     notFound();
   }
 
-  const nights = nightsBetween(booking.start_date, booking.end_date);
+  const days = daysBetween(booking.start_date, booking.end_date);
   const trailerName = booking.trailer?.name ?? "Trailer";
 
   return (
@@ -34,7 +34,8 @@ export default async function BookingConfirmationPage({
           </div>
           <h1 className="text-lg font-semibold">Booking confirmed</h1>
           <p className="text-sm text-[var(--color-text-muted)]">
-            Save this link — it&apos;s your only record of this booking.
+            Please take a screenshot of this page for your records, and save this link — it&apos;s
+            your only record of this booking.
           </p>
         </div>
 
@@ -42,7 +43,7 @@ export default async function BookingConfirmationPage({
           <Row label="Trailer" value={trailerName} />
           <Row label="Pickup" value={formatDisplayDate(booking.start_date)} />
           <Row label="Return" value={formatDisplayDate(booking.end_date)} />
-          <Row label="Length" value={`${nights} night${nights === 1 ? "" : "s"}`} />
+          <Row label="Length" value={`${days} day${days === 1 ? "" : "s"}`} />
           <Row label="Total price" value={`$${Number(booking.price).toFixed(2)}`} />
         </div>
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseService } from "@/lib/supabase/service";
 import { isAdminAuthed } from "@/lib/admin/guard";
 import { manualBookingSchema } from "@/lib/validation";
-import { nightsBetween, priceFor, MIN_NIGHTS } from "@/lib/pricing";
+import { daysBetween, priceFor, MIN_DAYS } from "@/lib/pricing";
 import { toDateOnly } from "@/lib/date";
 
 const EXCLUSION_VIOLATION = "23P01";
@@ -47,9 +47,9 @@ export async function POST(request: Request) {
   }
   const body = parsed.data;
 
-  if (nightsBetween(body.startDate, body.endDate) < MIN_NIGHTS) {
+  if (daysBetween(body.startDate, body.endDate) < MIN_DAYS) {
     return NextResponse.json(
-      { error: `Minimum length is ${MIN_NIGHTS} night.` },
+      { error: `Minimum length is ${MIN_DAYS} day.` },
       { status: 400 }
     );
   }

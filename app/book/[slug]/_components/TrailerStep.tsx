@@ -24,7 +24,7 @@ export function TrailerStep({
           <button
             key={trailer.id}
             onClick={() => onSelect(trailer)}
-            className="card group flex flex-col overflow-hidden text-left transition-colors hover:border-[var(--color-border-strong)]"
+            className="card group flex flex-col overflow-hidden text-left transition-colors hover:border-[var(--color-accent)] hover:ring-1 hover:ring-[var(--color-accent)]"
           >
             <div className="relative aspect-[16/9] w-full bg-[var(--color-surface-raised)]">
               {trailer.photo_url ? (
@@ -41,20 +41,21 @@ export function TrailerStep({
                 </div>
               )}
             </div>
-            <div className="flex flex-1 flex-col gap-1.5 p-4">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-lg font-semibold">{trailer.name}</span>
-                <span className="whitespace-nowrap text-sm font-medium text-[var(--color-text-muted)]">
-                  ${trailer.day_rate}/day
-                </span>
+            <div className="flex flex-1 flex-col gap-3 p-4">
+              <span className="text-lg font-semibold">{trailer.name}</span>
+              <div className="inline-flex w-fit items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-1.5 text-sm font-medium text-[var(--color-text-muted)]">
+                <span>${trailer.day_rate}/day</span>
+                {trailer.week_rate != null && (
+                  <>
+                    <span className="text-[var(--color-border-strong)]">·</span>
+                    <span>${trailer.week_rate}/week</span>
+                  </>
+                )}
               </div>
-              {trailer.week_rate != null && (
-                <p className="text-sm text-[var(--color-text-muted)]">
-                  ${trailer.week_rate}/week
-                </p>
-              )}
               {trailer.description && (
-                <p className="text-sm text-[var(--color-text-muted)]">{trailer.description}</p>
+                <p className="whitespace-pre-line text-sm text-[var(--color-text-muted)]">
+                  {trailer.description}
+                </p>
               )}
             </div>
           </button>

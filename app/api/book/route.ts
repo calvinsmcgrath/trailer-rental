@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { supabaseService } from "@/lib/supabase/service";
 import { bookingRequestSchema } from "@/lib/validation";
-import { nightsBetween, priceFor, MIN_NIGHTS } from "@/lib/pricing";
+import { daysBetween, priceFor, MIN_DAYS } from "@/lib/pricing";
 import { getClientIp } from "@/lib/http";
 
 const EXCLUSION_VIOLATION = "23P01";
@@ -18,9 +18,9 @@ export async function POST(request: Request) {
   }
   const body = parsed.data;
 
-  if (nightsBetween(body.startDate, body.endDate) < MIN_NIGHTS) {
+  if (daysBetween(body.startDate, body.endDate) < MIN_DAYS) {
     return NextResponse.json(
-      { error: `Minimum rental length is ${MIN_NIGHTS} night.` },
+      { error: `Minimum rental length is ${MIN_DAYS} day.` },
       { status: 400 }
     );
   }
