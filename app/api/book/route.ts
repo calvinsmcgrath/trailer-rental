@@ -3,6 +3,8 @@ import { headers } from "next/headers";
 import { supabaseService } from "@/lib/supabase/service";
 import { bookingRequestSchema } from "@/lib/validation";
 import { daysBetween, priceFor, MIN_DAYS } from "@/lib/pricing";
+import { formatDisplayTime, isWithinWindow } from "@/lib/hours";
+import { env } from "@/lib/env";
 import { getClientIp } from "@/lib/http";
 
 const EXCLUSION_VIOLATION = "23P01";
@@ -21,6 +23,22 @@ export async function POST(request: Request) {
   if (daysBetween(body.startDate, body.endDate) < MIN_DAYS) {
     return NextResponse.json(
       { error: `Minimum rental length is ${MIN_DAYS} day.` },
+      { status: 400 }
+    );
+  }
+
+  const windowStart = env.bookingWindowStart();
+  const windowEnd = env.bookingWindowEnd();
+  if (
+    !isWithinWindow(body.pickupTime, windowStart, windowEnd) ||
+    !isWithinWindow(body.dropoffTime, windowStart, windowEnd)
+  ) {
+    return NextResponse.json(
+      {
+        error: `Pickup and drop-off must be between ${formatDisplayTime(
+          windowStart
+        )} and ${formatDisplayTime(windowEnd)}.`,
+      },
       { status: 400 }
     );
   }
@@ -51,6 +69,8 @@ export async function POST(request: Request) {
       customer_phone: body.customerPhone,
       start_date: body.startDate,
       end_date: body.endDate,
+      pickup_time: body.pickupTime,
+      dropoff_time: body.dropoffTime,
       price,
       contract_signed_name: body.contractSignedName,
       signature_ip: signatureIp,
@@ -62,7 +82,10 @@ export async function POST(request: Request) {
   if (insertError) {
     if (insertError.code === EXCLUSION_VIOLATION) {
       return NextResponse.json(
-        { error: "Sorry, those dates were just booked by someone else. Please pick new dates." },
+        {
+          error:
+            "Sorry, that slot was just booked by someone else. Please pick new dates or times.",
+        },
         { status: 409 }
       );
     }

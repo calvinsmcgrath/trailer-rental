@@ -5,16 +5,19 @@ admin page. Next.js (App Router) + Supabase (Postgres, RLS, Storage) + Vercel.
 
 ## What's built
 
-- **Customer flow** at `/book/<BOOKING_SLUG>` — pick a trailer, pick dates (booked ranges
-  disabled), enter contact info, agree to the rental contract and sign, get a bookmarkable
-  confirmation page. No login, no payment.
+- **Customer flow** at `/book/<BOOKING_SLUG>` — pick a trailer, pick dates (fully booked days
+  disabled), pick pickup and drop-off times from the half-hour slots still free that day, enter
+  contact info, agree to the rental contract and sign, get a bookmarkable confirmation page.
+  No login, no payment.
 - **Admin** at `/admin/<ADMIN_SLUG>` — single shared password, rate-limited login.
   - **Bookings** — upcoming/history tabs, paid/unpaid toggle, notes, cancel, and a manual
     "add booking" flow for phone-in customers or blocking dates for maintenance.
   - **Trailers** — add, edit, deactivate/reactivate, delete (blocked if the trailer has any
     booking history — deactivate instead), photo upload, manual sort order.
 - Overlapping bookings for the same trailer are physically impossible at the database level
-  (a Postgres `EXCLUDE` constraint), not just checked in the app before insert.
+  (a Postgres `EXCLUDE` constraint), not just checked in the app before insert. The same
+  constraint enforces the mandatory 3-hour turnaround gap between one booking's drop-off and
+  the next one's pickup, so a 2:00 PM return frees the trailer at 5:00 PM the same day.
 - Row Level Security is on for every table. The browser only ever talks to Supabase directly
   to read the public trailer list (via a column-limited view); every booking read/write and
   all admin operations go through Next.js server routes using the service-role key, which also
@@ -27,7 +30,8 @@ admin page. Next.js (App Router) + Supabase (Postgres, RLS, Storage) + Vercel.
 1. Create a project at [supabase.com](https://supabase.com).
 2. In the SQL editor, run `supabase/migrations/0001_init.sql` (creates tables, the exclusion
    constraint, RLS, the public trailers view, the login-attempts table, and the
-   `trailer-photos` storage bucket).
+   `trailer-photos` storage bucket), then each later migration in `supabase/migrations/` in
+   filename order.
 3. From **Project Settings → API**, copy the Project URL, `anon` public key, and
    `service_role` key into `.env.local`.
 
@@ -42,8 +46,9 @@ three Supabase values). See that file for what each variable does.
 These currently ship with placeholder content — replace before real customers use this:
 
 - **`lib/contract.ts`** — the actual rental agreement text.
-- **`ADMIN_PASSWORD`**, **`STANDARD_HOURS_TEXT`** (env vars) — pick a real password; set the
-  actual pickup/return hours shown on the contract step and confirmation page.
+- **`ADMIN_PASSWORD`** (env var) — pick a real password.
+- **`BOOKING_WINDOW_START`** / **`BOOKING_WINDOW_END`** (env vars) — the daily hours customers
+  can choose pickup and drop-off times within. Defaults to 07:00–21:00.
 - **Trailer data** — once deployed, add your real trailers (name, description, day rate,
   photo) through the admin **Trailers** page. Nothing is seeded.
 

@@ -17,7 +17,6 @@ export const env = {
   bookingSlug: () => required("BOOKING_SLUG"),
   sessionSecret: () => required("SESSION_SECRET"),
   businessName: () => process.env.NEXT_PUBLIC_BUSINESS_NAME || "Trailer Rentals",
-  standardHoursText: () =>
-    process.env.STANDARD_HOURS_TEXT ||
-    "Pickup after 2:00 PM · Return by 11:00 AM (placeholder — set STANDARD_HOURS_TEXT)",
+  bookingWindowStart: () => process.env.BOOKING_WINDOW_START || "07:00",
+  bookingWindowEnd: () => process.env.BOOKING_WINDOW_END || "21:00",
 };

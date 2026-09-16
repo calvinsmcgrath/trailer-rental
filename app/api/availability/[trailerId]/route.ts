@@ -10,7 +10,7 @@ export async function GET(
 
   const { data, error } = await db
     .from("bookings")
-    .select("start_date, end_date")
+    .select("start_date, end_date, pickup_time, dropoff_time")
     .eq("trailer_id", trailerId)
     .is("cancelled_at", null);
 
@@ -18,5 +18,5 @@ export async function GET(
     return NextResponse.json({ error: "Failed to load availability" }, { status: 500 });
   }
 
-  return NextResponse.json({ bookedRanges: data });
+  return NextResponse.json({ bookings: data });
 }

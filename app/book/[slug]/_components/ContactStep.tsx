@@ -1,3 +1,5 @@
+import { BackButton } from "@/components/BackButton";
+
 export function ContactStep({
   name,
   phone,
@@ -17,9 +19,7 @@ export function ContactStep({
 
   return (
     <div className="space-y-4">
-      <button onClick={onBack} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-        ← Back to dates
-      </button>
+      <BackButton label="Change your times" onClick={onBack} />
       <h1 className="text-lg font-semibold">Your contact info</h1>
 
       <div>

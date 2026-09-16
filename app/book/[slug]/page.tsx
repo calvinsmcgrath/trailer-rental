@@ -24,7 +24,8 @@ export default async function BookPage({
     <BookingWizard
       trailers={(trailers ?? []) as PublicTrailer[]}
       businessName={env.businessName()}
-      standardHoursText={env.standardHoursText()}
+      windowStart={env.bookingWindowStart()}
+      windowEnd={env.bookingWindowEnd()}
     />
   );
 }

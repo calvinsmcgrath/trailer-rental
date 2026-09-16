@@ -3,6 +3,8 @@ import { supabaseService } from "@/lib/supabase/service";
 import { isAdminAuthed } from "@/lib/admin/guard";
 import { manualBookingSchema } from "@/lib/validation";
 import { daysBetween, priceFor, MIN_DAYS } from "@/lib/pricing";
+import { formatDisplayTime, isWithinWindow } from "@/lib/hours";
+import { env } from "@/lib/env";
 import { toDateOnly } from "@/lib/date";
 
 const EXCLUSION_VIOLATION = "23P01";
@@ -12,17 +14,24 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const scope = new URL(request.url).searchParams.get("scope") === "history" ? "history" : "upcoming";
+  const scopeParam = new URL(request.url).searchParams.get("scope");
+  const scope = scopeParam === "history" || scopeParam === "current" ? scopeParam : "upcoming";
   const today = toDateOnly(new Date());
   const db = supabaseService();
 
   let query = db.from("bookings").select("*, trailer:trailers(id, name)");
-  if (scope === "upcoming") {
-    query = query.is("cancelled_at", null).gte("end_date", today).order("start_date", { ascending: true });
+  if (scope === "current") {
+    query = query
+      .is("cancelled_at", null)
+      .lte("start_date", today)
+      .gte("end_date", today)
+      .order("created_at", { ascending: false });
+  } else if (scope === "upcoming") {
+    query = query.is("cancelled_at", null).gt("start_date", today).order("created_at", { ascending: false });
   } else {
     query = query
       .or(`cancelled_at.not.is.null,end_date.lt.${today}`)
-      .order("start_date", { ascending: false });
+      .order("created_at", { ascending: false });
   }
 
   const { data, error } = await query;
@@ -54,6 +63,22 @@ export async function POST(request: Request) {
     );
   }
 
+  const windowStart = env.bookingWindowStart();
+  const windowEnd = env.bookingWindowEnd();
+  if (
+    !isWithinWindow(body.pickupTime, windowStart, windowEnd) ||
+    !isWithinWindow(body.dropoffTime, windowStart, windowEnd)
+  ) {
+    return NextResponse.json(
+      {
+        error: `Pickup and drop-off must be between ${formatDisplayTime(
+          windowStart
+        )} and ${formatDisplayTime(windowEnd)}.`,
+      },
+      { status: 400 }
+    );
+  }
+
   const db = supabaseService();
   const { data: trailer } = await db
     .from("trailers")
@@ -78,6 +103,8 @@ export async function POST(request: Request) {
       customer_phone: body.customerPhone,
       start_date: body.startDate,
       end_date: body.endDate,
+      pickup_time: body.pickupTime,
+      dropoff_time: body.dropoffTime,
       price,
       contract_signed_name: signerName,
       is_manual: true,
@@ -91,7 +118,10 @@ export async function POST(request: Request) {
   if (insertError) {
     if (insertError.code === EXCLUSION_VIOLATION) {
       return NextResponse.json(
-        { error: "Those dates overlap an existing booking for this trailer." },
+        {
+          error:
+            "That overlaps an existing booking for this trailer, or leaves less than 3 hours between them.",
+        },
         { status: 409 }
       );
     }

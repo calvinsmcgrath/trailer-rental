@@ -1,12 +1,17 @@
-import type { DateRange } from "react-day-picker";
+import type { DateRange, Matcher } from "react-day-picker";
+import { BackButton } from "@/components/BackButton";
 import { Calendar } from "@/components/Calendar";
-import { fromDateOnly, toDateOnly, formatDisplayDate, startOfToday } from "@/lib/date";
+import { fullyBookedDates, lastSelectableDropoffDate } from "@/lib/availability";
+import { toDateOnly, formatDisplayDate, startOfToday } from "@/lib/date";
+import type { BookingSpan } from "@/lib/hours";
 import { daysBetween, priceFor } from "@/lib/pricing";
 import type { PublicTrailer } from "@/lib/types";
 
 export function DatesStep({
   trailer,
-  bookedRanges,
+  spans,
+  windowStart,
+  windowEnd,
   loadingAvailability,
   range,
   onRangeChange,
@@ -15,7 +20,9 @@ export function DatesStep({
   errorMessage,
 }: {
   trailer: PublicTrailer;
-  bookedRanges: { start_date: string; end_date: string }[];
+  spans: BookingSpan[];
+  windowStart: string;
+  windowEnd: string;
   loadingAvailability: boolean;
   range: DateRange | undefined;
   onRangeChange: (range: DateRange | undefined) => void;
@@ -23,10 +30,27 @@ export function DatesStep({
   onContinue: () => void;
   errorMessage: string | null;
 }) {
-  const disabled = [
+  // Only whole days with no usable pickup time are struck out here — a day
+  // another rental merely touches can still work, which is the point of the
+  // buffer rules. The times step narrows it down from there.
+  const disabled: Matcher[] = [
     { before: startOfToday() },
-    ...bookedRanges.map((b) => ({ from: fromDateOnly(b.start_date), to: fromDateOnly(b.end_date) })),
+    ...fullyBookedDates(spans, windowStart, windowEnd),
   ];
+
+  // While the return day is still being chosen, stop the range reaching past
+  // the next rental, since no drop-off time there could ever clear the buffer.
+  if (range?.from && !range.to) {
+    const lastDropoff = lastSelectableDropoffDate(
+      toDateOnly(range.from),
+      spans,
+      windowStart,
+      windowEnd
+    );
+    if (lastDropoff) {
+      disabled.push({ after: lastDropoff });
+    }
+  }
 
   const days =
     range?.from && range?.to ? daysBetween(toDateOnly(range.from), toDateOnly(range.to)) : 0;
@@ -35,18 +59,7 @@ export function DatesStep({
 
   return (
     <div className="space-y-4">
-      <div className="group fixed left-4 top-6 z-10 sm:left-6">
-        <button
-          onClick={onBack}
-          aria-label="Choose a different trailer"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] text-lg text-[var(--color-text-muted)] shadow-sm hover:bg-[var(--color-surface-raised)] hover:text-[var(--color-text)]"
-        >
-          ←
-        </button>
-        <span className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-md border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-2 py-1 text-xs font-medium text-[var(--color-text)] opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
-          Choose a different trailer
-        </span>
-      </div>
+      <BackButton label="Choose a different trailer" onClick={onBack} />
       <h1 className="text-lg font-semibold">Pick your dates</h1>
       <p className="text-sm text-[var(--color-text-muted)]">
         {trailer.name} · ${trailer.day_rate}/day

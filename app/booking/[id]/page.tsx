@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabaseService } from "@/lib/supabase/service";
 import { env } from "@/lib/env";
-import { formatDisplayDate } from "@/lib/date";
+import { formatDisplayDateTime } from "@/lib/hours";
 import { daysBetween } from "@/lib/pricing";
 
 export default async function BookingConfirmationPage({
@@ -41,15 +42,21 @@ export default async function BookingConfirmationPage({
 
         <div className="space-y-2 border-t border-[var(--color-border)] pt-4 text-sm">
           <Row label="Trailer" value={trailerName} />
-          <Row label="Pickup" value={formatDisplayDate(booking.start_date)} />
-          <Row label="Return" value={formatDisplayDate(booking.end_date)} />
+          <Row
+            label="Pickup"
+            value={formatDisplayDateTime(booking.start_date, booking.pickup_time)}
+          />
+          <Row
+            label="Return by"
+            value={formatDisplayDateTime(booking.end_date, booking.dropoff_time)}
+          />
           <Row label="Length" value={`${days} day${days === 1 ? "" : "s"}`} />
           <Row label="Total price" value={`$${Number(booking.price).toFixed(2)}`} />
         </div>
 
-        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-muted)]">
-          {env.standardHoursText()}
-        </div>
+        <Link href={`/book/${env.bookingSlug()}`} className="btn btn-secondary w-full">
+          Start a new booking
+        </Link>
 
         <p className="text-center text-xs text-[var(--color-text-faint)]">
           Booked under {booking.contract_signed_name}

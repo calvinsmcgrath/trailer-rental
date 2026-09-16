@@ -53,6 +53,10 @@ export function TrailerCard({
 
   async function handleSave() {
     const rate = parseFloat(dayRate);
+    if (!Number.isFinite(rate) || rate <= 0) {
+      setSaveError("Day rate is required.");
+      return;
+    }
     const weekRateNum = parseFloat(weekRate);
     setSaving(true);
     setSaveError(null);
@@ -60,7 +64,7 @@ export function TrailerCard({
       await onSave({
         name: name.trim() || trailer.name,
         description,
-        day_rate: Number.isFinite(rate) && rate > 0 ? rate : trailer.day_rate,
+        day_rate: rate,
         week_rate: Number.isFinite(weekRateNum) && weekRateNum > 0 ? weekRateNum : null,
       });
       setDirty(false);
@@ -147,10 +151,11 @@ export function TrailerCard({
             )}
           </div>
           <textarea
-            className="input min-h-[2.5rem] resize-none text-sm"
+            className="input resize-y text-sm"
+            rows={14}
             value={description}
             onChange={(e) => markDirty(setDescription)(e.target.value)}
-            placeholder="Description / specs"
+            placeholder="Listing Information"
           />
           <div className="flex items-center gap-1 text-sm">
             <span className="text-[var(--color-text-muted)]">$</span>

@@ -1,4 +1,4 @@
-const STEPS = ["Trailer", "Dates", "Contact", "Agreement"] as const;
+const STEPS = ["Trailer", "Dates", "Times", "Contact", "Agreement"] as const;
 
 export function ProgressHeader({ businessName, stepIndex }: { businessName: string; stepIndex: number }) {
   return (

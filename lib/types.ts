@@ -20,6 +20,8 @@ export type Booking = {
   customer_phone: string;
   start_date: string;
   end_date: string;
+  pickup_time: string;
+  dropoff_time: string;
   price: number;
   contract_signed_name: string;
   contract_signed_at: string;

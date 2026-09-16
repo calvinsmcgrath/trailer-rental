@@ -2,22 +2,30 @@
 
 import { useState } from "react";
 import type { Trailer } from "@/lib/types";
+import { formatDisplayTime, generateSlots } from "@/lib/hours";
 
 export function AddBookingModal({
   trailers,
+  windowStart,
+  windowEnd,
   onClose,
   onCreated,
 }: {
   trailers: Trailer[];
+  windowStart: string;
+  windowEnd: string;
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const slots = generateSlots(windowStart, windowEnd);
   const [trailerId, setTrailerId] = useState(trailers[0]?.id ?? "");
   const [isBlock, setIsBlock] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [pickupTime, setPickupTime] = useState(windowStart);
+  const [dropoffTime, setDropoffTime] = useState(windowEnd);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,6 +42,8 @@ export function AddBookingModal({
           trailerId,
           startDate,
           endDate,
+          pickupTime,
+          dropoffTime,
           customerName: isBlock ? customerName || "Blocked" : customerName,
           customerPhone,
           notes,
@@ -129,6 +139,34 @@ export function AddBookingModal({
               onChange={(e) => setEndDate(e.target.value)}
               required
             />
+          </div>
+          <div>
+            <label className="label">Pickup time</label>
+            <select
+              className="input"
+              value={pickupTime}
+              onChange={(e) => setPickupTime(e.target.value)}
+            >
+              {slots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {formatDisplayTime(slot)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">Drop-off time</label>
+            <select
+              className="input"
+              value={dropoffTime}
+              onChange={(e) => setDropoffTime(e.target.value)}
+            >
+              {slots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {formatDisplayTime(slot)}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

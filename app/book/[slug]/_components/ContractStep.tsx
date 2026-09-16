@@ -1,6 +1,9 @@
+import { BackButton } from "@/components/BackButton";
+
 export function ContractStep({
   contractText,
-  standardHoursText,
+  pickupLabel,
+  dropoffLabel,
   agreed,
   signedName,
   submitting,
@@ -11,7 +14,8 @@ export function ContractStep({
   onSubmit,
 }: {
   contractText: string;
-  standardHoursText: string;
+  pickupLabel: string;
+  dropoffLabel: string;
   agreed: boolean;
   signedName: string;
   submitting: boolean;
@@ -25,13 +29,18 @@ export function ContractStep({
 
   return (
     <div className="space-y-4">
-      <button onClick={onBack} className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-        ← Back
-      </button>
+      <BackButton label="Change your contact info" onClick={onBack} />
       <h1 className="text-lg font-semibold">Rental agreement</h1>
 
-      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm text-[var(--color-text-muted)]">
-        {standardHoursText}
+      <div className="space-y-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-raised)] px-3 py-2 text-sm">
+        <div className="flex justify-between gap-3">
+          <span className="text-[var(--color-text-muted)]">Pickup</span>
+          <span className="text-right font-medium">{pickupLabel}</span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span className="text-[var(--color-text-muted)]">Return by</span>
+          <span className="text-right font-medium">{dropoffLabel}</span>
+        </div>
       </div>
 
       <div className="card max-h-64 overflow-y-auto p-4 text-sm leading-relaxed whitespace-pre-wrap text-[var(--color-text-muted)]">
